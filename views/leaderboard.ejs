@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaderboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link href="/style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="header" id="main-header">
+      <h1>The Alliance</h1>
+    </div>
+    <div class="container mt-5">
+      <div class="row mt-4">
+        <% if (rankedUsers.length > 0) { %> <% rankedUsers.forEach(user => { %>
+        <div class="col-md-4">
+          <div class="user-card">
+            <h5><strong><%= user.name %></strong></h5>
+            <p>Offerings: <%= (user.offerings || []).join(", ") %></p>
+            <button
+              class="btn btn-primary w-100 mt-2 start-conversation"
+              data-user="<%= JSON.stringify(user) %>"
+            >
+              Start Conversation
+            </button>
+          </div>
+        </div>
+        <% }); %> <% } else { %>
+        <div class="col-12">
+          <p class="text-center">No matches found.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="conversationModal"
+      tabindex="-1"
+      aria-labelledby="conversationModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="conversationModalLabel">
+              Start a Conversation
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Select a conversation starter or type your own message:</p>
+            <div id="starter-options" class="mb-3"></div>
+            <textarea
+              id="customMessage"
+              class="form-control mb-3"
+              rows="3"
+              placeholder="Type your own message here..."
+            ></textarea>
+            <button id="sendMessage" class="btn btn-primary w-100">
+              Send Message
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const buttons = document.querySelectorAll(".start-conversation");
+        const modal = new bootstrap.Modal(
+          document.getElementById("conversationModal")
+        );
+        const starterOptionsContainer =
+          document.getElementById("starter-options");
+        const customMessageInput = document.getElementById("customMessage");
+        const sendMessageButton = document.getElementById("sendMessage");
+        let selectedUser = null;
+
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
+            selectedUser = JSON.parse(button.getAttribute("data-user"));
+            const starters = [
+              `Hi ${
+                selectedUser.name
+              }, I heard you're offering ${selectedUser.offerings.join(
+                ", "
+              )}. How did you get started in this field?`,
+              `Hey ${selectedUser.name}, what's the most exciting part of offering ${selectedUser.offerings[0]}?`,
+              `Hello ${
+                selectedUser.name
+              }, if someone wanted to explore ${selectedUser.offerings.join(
+                ", "
+              )}, where should they start?`,
+            ];
+
+            starterOptionsContainer.innerHTML = starters
+              .map(
+                (starter, index) => `
+            <button class="btn btn-outline-primary w-100 mb-2 starter-option" data-starter="${starter}">
+              ${starter}
+            </button>
+          `
+              )
+              .join("");
+
+            modal.show();
+          });
+        });
+
+        document.addEventListener("click", (e) => {
+          if (e.target.classList.contains("starter-option")) {
+            document.querySelectorAll(".starter-option").forEach((option) => {
+              option.classList.remove("active");
+            });
+            e.target.classList.add("active");
+            customMessageInput.value = e.target.dataset.starter;
+          }
+        });
+
+        sendMessageButton.addEventListener("click", () => {
+          const message = customMessageInput.value.trim();
+          if (message && selectedUser) {
+            console.log(`Sending message to ${selectedUser.name}: ${message}`);
+            modal.hide();
+          } else {
+            alert("Please select or type a message.");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
